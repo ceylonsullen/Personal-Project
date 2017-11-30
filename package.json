@@ -1,10 +1,11 @@
 {
-  "name": "Personal-Project",
+  "name": "PersonalProject",
   "version": "1.0.0",
   "description": "Congratulations on making it through the first phase of Lambda School!  For this next phase you will be applying the concepts you learn in class to building a full stack application.  This application will be an important part of your portfolio so do your best work!",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./src/app.js"
   },
   "repository": {
     "type": "git",
@@ -16,5 +17,14 @@
   "bugs": {
     "url": "https://github.com/ceylonsullen/Personal-Project/issues"
   },
-  "homepage": "https://github.com/ceylonsullen/Personal-Project#readme"
+  "homepage": "https://github.com/ceylonsullen/Personal-Project#readme",
+  "dependencies": {
+    "bcrypt": "^1.0.3",
+    "body-parser": "^1.18.2",
+    "cors": "^2.8.4",
+    "express": "^4.16.2",
+    "express-session": "^1.15.6",
+    "fs": "0.0.1-security",
+    "mongoose": "^4.13.0"
+  }
 }

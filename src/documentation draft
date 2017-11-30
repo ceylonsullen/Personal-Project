@@ -1,0 +1,62 @@
+post to '/users' with username and password to add user account
+
+post to '/login' to log in
+
+post to '/logout' to log out
+
+get to '/card/:name' with the card name (lower case) to pull up an individual card
+
+must be logged in to go to '/user' and beyond
+
+** user object exists on req.user after 'user' middleware **
+
+
+get to '/user/cards' or '/user/decks' or /user/tags' returns a an array of each for the user logged in
+
+'/user/tag/get/:tag' middleware send up the tag if found on user (req.tag), middleware for gets
+
+'/user/card/get/:name' middleware send up the card if found on user (req.card), middleware for gets
+
+'/user/deck/get/:name' middleware send up the deck if found on user (req.deck), middleware for gets
+
+get to '/user/deck/get/:name/cards' returns an array of all cards in the deck seperated into three objects for each board
+
+get to '/user/deck/get/:name/tags' returns an array of all tags in the deck
+
+
+// posters and post middleware for decks
+server.use('/user/deck/post', (req, res, next) => {
+
+//add a deck if it doesn't exist yet
+server.post('/user/deck/post/add', (req, res) => {
+** send { name: [deckname as a string]}
+
+
+** NOT FUNCTIONAL **
+// posters and middle ware for posts for card
+server.use('/user/card/post', (req, res, next) => {
+
+**
+
+// posters and post middlewares for tags
+server.use('/user/tag/post', (req, res, next) => {
+
+
+//add post if it doesn't exist yet
+server.post('/user/tag/post/add', (req, res) => {
+
+
+// add tag to deck
+server.put('/user/deck/post/tag', (req, res) => {
+send: { name: "deckname", tag: "tagname"}
+
+// now we have to add cards to decks, to any of the boards
+server.put('/user/deck/post/card', (req, res) => {
+
+
+// add a card to a tag, card name must be to lower case
+server.put('/user/tag/post/card'
+
+
+// add a deck to a tag
+server.put('/user/tag/post/deck'
