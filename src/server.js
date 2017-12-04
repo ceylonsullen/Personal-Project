@@ -59,7 +59,9 @@ server.post('/users', (req, res) => {
     });
 });
 server.post('/login', (req, res) => {
+    
     const { username, password } = req.body;
+    
         if (!username || !password) {
             sendUserError('please send both', res);
             return;
@@ -72,6 +74,7 @@ server.post('/login', (req, res) => {
                 if (err) sendUserError(err, res);
                 else if (result) {
                     req.session.user = user.username;
+                    
                     res.json({ success: true });
                 } else sendUserError('wrong password', res);
                 });
@@ -84,14 +87,16 @@ server.post('/login', (req, res) => {
   
 server.post('/logout', (req, res) => {
     req.session.destroy();
-    return res.send({ success: "true" })
+    return res.send({ success: true })
 });
 
-server.get('/card/:name', (req, res) => {
+server.get('/cardsearch/:name', (req, res) => {
     const { name } = req.params;
+    
     Card.findOne({$or: [ {imageName: name}, { name } ] })
         .exec()
         .then((card) => {
+            
             return res.send(card)
         })
         .catch((err) => {
@@ -117,6 +122,7 @@ server.use('/user', (req, res, next) => {
   
 server.get('/user/decks', (req,res) => {
     const user = req.session.user;
+    
     Deck.find({ user }).exec()
     .then((decksArray) => {
         return res.send(decksArray)
@@ -142,7 +148,7 @@ server.get('/user/cards', (req,res) => {
     const userObject = req.user
     Card.find({_id : { $in: userObject.cards }}).exec()
     .then((cardsArray) => {
-        console.log(user);
+        
         return res.send(cardsArray)
     })
     .catch((err) => {
@@ -245,19 +251,20 @@ server.get('/user/tag/:tag/cards', (req, res) => {
     Card.find({_id : { $in: tag.cards } })
     .exec()
     .then((cards) => {
-        res.send(cards);
+        return res.send(cards);
     })
     .catch((err) => {
         return res.status(STATUS_USER_ERROR).send(err);
     }) 
 });
 
-server.get('/user/tag/:tag/decks', (req, res) => {
+server.get('/user/tag/get/:tag/decks', (req, res) => {
+    console.log('we here at get tag decks')
     const tag = req.tag;
     Deck.find({_id : { $in: tag.decks } })
     .exec()
     .then((decks) => {
-        res.send(decks);
+        return res.send(decks);
     })
     .catch((err) => {
         return res.status(STATUS_USER_ERROR).send(err);
@@ -290,11 +297,11 @@ server.post('/user/deck/post/add', (req, res) => {
         const deckToCreate = new Deck({ name, user })
         deckToCreate.save()
         .then((createdDeck) => {
-            console.log(createdDeck);
+            
             userObject.decks.push(createdDeck)
             userObject.save()
             .then(() => {
-                return res.send({ success: "true" });
+                return res.send({ success: true });
             })
             .catch((err) => {
                 return res.status(STATUS_USER_ERROR).send(err);
@@ -310,7 +317,7 @@ server.post('/user/deck/post/add', (req, res) => {
 server.use('/user/card/post', (req, res, next) => {
     const { name } = req.body;
     const user = req.user;
-    Card.findOne({ name, _id : { $in: user.cards }  }).exec()
+    Card.findOne({ imageName: name, _id : { $in: user.cards }  }).exec()
     .then(foundCard => {
         if (foundCard) req.card = foundCard;
         else req.card = null;
@@ -323,19 +330,21 @@ server.use('/user/card/post', (req, res, next) => {
 
 //add a card if it doesn't exist yet
 server.post('/user/card/post/add', (req, res) => {
+
     const { name } = req.body;
+    
     const user = req.session.user;
     const userObject = req.user;
     if (req.card) {
         return res.status(STATUS_USER_ERROR).send({error: "you already have a card by that name!"})
     } else {
-        Card.findOne({name})
+        Card.findOne({imageName: name})
         .then((createdCard) => {
-            console.log(createdCard);
+            
             userObject.cards.push(createdCard)
             userObject.save()
             .then(() => {
-                return res.send({ success: "true" });
+                return res.send({ success: true });
             })
             .catch((err) => {
                 return res.status(STATUS_USER_ERROR).send(err);
@@ -350,7 +359,7 @@ server.post('/user/card/post/add', (req, res) => {
 // posters and post middlewares for tags
 server.use('/user/tag/post', (req, res, next) => {
     const { tag } = req.body;
-    console.log(req.user)
+    
     const user = req.user;
     Tag.findOne({ tag, _id : { $in: user.tags }  }).exec()
     .then(foundTag => {
@@ -373,11 +382,11 @@ server.post('/user/tag/post/add', (req, res) => {
         const TagToCreate = new Tag({ tag, user })
         TagToCreate.save()
         .then((createdTag) => {
-            console.log(createdTag);
+            
             userObject.tags.push(createdTag)
             userObject.save()
             .then(() => {
-                return res.send({ success: "true" });
+                return res.send({ success: true });
             })
             .catch((err) => {
                 return res.status(STATUS_USER_ERROR).send(err);
@@ -390,16 +399,35 @@ server.post('/user/tag/post/add', (req, res) => {
 })
 
 // add tag to deck
-server.put('/user/deck/post/tag', (req, res) => {
+
+server.use('/user/deck/post/tag', (req, res, next) => {
     const deck = req.deck;
+    const user = req.user;
     if (!deck) return res.status(STATUS_USER_ERROR).send({error: "no deck by that name!"})
     const { tag } = req.body;
+    Tag.findOne({ tag, user: user.username}).exec()
+    .then(tagForDeck => {
+        req.tag = tagForDeck;
+        next();
+    })
+    .catch((err) => {
+        return res.status(STATUS_USER_ERROR).send(err);
+    })
+})
+
+server.put('/user/deck/post/tag', (req, res) => {
+    const deck = req.deck;
+    console.log('here!')
+    if (req.tag) if (deck.tags.indexOf(req.tag._id) >= 0) return res.status(STATUS_USER_ERROR).send({error: "we already have the same thing!"})
+
+    if (!deck) return res.status(STATUS_USER_ERROR).send({error: "no deck by that name!"})
+    const { tag } = req.body;
+    
     if (!tag) return res.status(STATUS_USER_ERROR).send({error: "must include tag in the body!"})
     const user = req.user;
     Tag.findOne({ tag, user: user.username}).exec()
     .then(tagForDeck => {
         if (tagForDeck) {
-            if (deck.tags.indexOf(tagForDeck._id) < 0) { // if that tag isn't already part of the deck
                 deck.tags.push(tagForDeck);
                 deck.save()
                 .then(() => {
@@ -412,9 +440,6 @@ server.put('/user/deck/post/tag', (req, res) => {
                 .catch((err) => {
                     return res.status(STATUS_USER_ERROR).send(err);
                 }) 
-            } else {
-                return res.status(STATUS_USER_ERROR).send({ Error: "that deck already has that tag!"})
-            }
         } else {
             const myNewTagForDeck = new Tag({tag, user: user.username})
             myNewTagForDeck.save()
@@ -451,7 +476,7 @@ server.put('/user/deck/post/tag', (req, res) => {
         }
     })
     .then(() => {
-        return res.send({ success: "true" })
+        return res.send({ success: true })
     })
     .catch((err) => {
         return res.status(STATUS_USER_ERROR).send(err);
@@ -468,6 +493,7 @@ server.put('/user/deck/post/card', (req, res) => {
     }
     const user = req.user;
     const { place } = req.body
+    
     Card.findOne({ imageName: cardName }).exec()
     .then(cardForDeck => {
         if (cardForDeck) {
@@ -488,7 +514,7 @@ server.put('/user/deck/post/card', (req, res) => {
         }
     })
     .then(() => {
-        return res.send({ success: "true" })
+        return res.send({ success: true })
     })
     .catch((err) => {
         return res.status(STATUS_USER_ERROR).send(err);
@@ -526,7 +552,7 @@ server.put('/user/tag/post/card', (req, res) => {
         }
     })
     .then(() => {
-        return res.send({ success: "true" })
+        return res.send({ success: true })
     })
     .catch((err) => {
         return res.status(STATUS_USER_ERROR).send(err);
@@ -536,6 +562,7 @@ server.put('/user/tag/post/card', (req, res) => {
 // add a deck to a tag
 
 server.put('/user/tag/post/deck', (req, res) => {
+    console.log('tag decks requested')
     const tag = req.tag;
     if (!tag) return res.status(STATUS_USER_ERROR).send({error: "no tag by that name!"})
     const { deck } = req.body;
@@ -596,7 +623,7 @@ server.put('/user/tag/post/deck', (req, res) => {
         }
     })
     .then(() => {
-        return res.send({ success: "true" })
+        return res.send({ success: true })
     })
     .catch((err) => {
         return res.status(STATUS_USER_ERROR).send(err);

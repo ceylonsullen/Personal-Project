@@ -1,0 +1,14 @@
+.whole {
+   background-color: rgba(97, 33, 97, 0.61);
+   color: purple;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+}
+.part {
+        display: -webkit-flex;
+        display: flex;
+        -webkit-flex-direction: row;
+        flex-direction: row;
+}
