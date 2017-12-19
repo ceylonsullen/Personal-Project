@@ -1,4 +1,5 @@
 const bodyParser = require('body-parser');
+
 const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
@@ -10,7 +11,7 @@ const Tag = require('./Tag.js');
 const cors = require('cors');
 
 const corsOptions = {
-  origin: 'http://localhost:3000',
+  origin: 'http://boiling-atoll-53362.herokuapp.com',
   credentials: true
 };
 
